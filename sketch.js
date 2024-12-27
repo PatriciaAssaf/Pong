@@ -61,6 +61,9 @@ class Bola {
     this.r = r * 2; // Diâmetro da bola
     this.velocidadeX = 5;
     this.velocidadeY = 5;
+    this.tamanhoOriginal = this.r; // Guardar o tamanho original da bola
+    this.tamanhoAtual = this.r; // Usar para modificar o tamanho durante a colisão
+    this.esmagada = false; // Flag para verificar se a bola está esmagada
   }
 
   update() {
@@ -73,6 +76,11 @@ class Bola {
 
     if (this.x - this.r / 2 < 0 || this.x + this.r / 2 > width) {
       this.reiniciar();
+    }
+
+    // Se a bola estiver esmagada, aumentar gradualmente para o tamanho original
+    if (this.esmagada && this.tamanhoAtual < this.tamanhoOriginal) {
+      this.tamanhoAtual += 0.2; // Velocidade de crescimento da bola
     }
   }
 
@@ -89,11 +97,15 @@ class Bola {
       this.velocidadeX *= -1.1;
 
       // Modificar a velocidade vertical com base na posição da colisão
-      this.velocidadeY += pontoColisao * 0.1; // Aumenta o valor multiplicador conforme necessário
+      this.velocidadeY += pontoColisao * 0.2; // Aumenta o valor multiplicador conforme necessário
       this.velocidadeX = constrain(this.velocidadeX, -10, 10);
 
       // Limitar a velocidade para evitar ângulos extremos
       this.velocidadeY = constrain(this.velocidadeY, -5, 5);
+
+      // Iniciar o efeito de esmagamento
+      this.esmagada = true;
+      this.tamanhoAtual = this.r / 2; // Diminuir o tamanho quando colidir
     }
   }
 
@@ -102,10 +114,12 @@ class Bola {
     this.y = height / 2;
     this.velocidadeX = random([-5, 5]); // Reinicia em direção aleatória
     this.velocidadeY = random(-5, 5);
+    this.tamanhoAtual = this.r; // Restaura o tamanho original
+    this.esmagada = false; // Restaura a bola para o estado normal
   }
 
   display() {
     fill(255);
-    ellipse(this.x, this.y, this.r);
+    ellipse(this.x, this.y, this.tamanhoAtual);
   }
 }
