@@ -1,4 +1,8 @@
-let raqueteJogador, raqueteComputador, bola;
+let raqueteJogador, raqueteComputador, bola, fundo;
+
+function preload() {
+  fundo = loadImage('fundo1.png'); 
+}
 
 function setup() {
   createCanvas(800, 400);
@@ -9,10 +13,30 @@ function setup() {
 }
 
 function draw() {
-  background(0);
+    let canvasRatio = width / height; // Proporção do canvas
+    let imageRatio = fundo.width / fundo.height; // Proporção da imagem
+  
+    let sx, sy, sWidth, sHeight;
+  
+    if (canvasRatio > imageRatio) {
+      // Canvas é mais largo que a imagem, recortar verticalmente
+      sWidth = fundo.width;
+      sHeight = fundo.width / canvasRatio;
+      sx = 0;
+      sy = (fundo.height - sHeight) / 2;
+    } else {
+      // Canvas é mais alto que a imagem, recortar horizontalmente
+      sWidth = fundo.height * canvasRatio;
+      sHeight = fundo.height;
+      sx = (fundo.width - sWidth) / 2;
+      sy = 0;
+    }
+  
+    // Desenhar a imagem recortada
+    image(fundo, 0, 0, width, height, sx, sy, sWidth, sHeight);
 
   // Bordas superiores e inferiores
-  fill(255, 0, 0);
+  fill("#2b3fd6");
   rect(0, 0, width, 5);
   rect(0, height - 5, width, 5);
 
