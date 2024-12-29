@@ -1,14 +1,17 @@
-let raqueteJogador, raqueteComputador, bola, fundo;
+let raqueteJogador, raqueteComputador, bola, fundo, bolaSprite, barra1Sprite, barra2Sprite;
 
 function preload() {
-  fundo = loadImage('fundo1.png'); 
+  fundo = loadImage("fundo1.png"); 
+  bolaSprite = loadImage("bola.png");
+  barra1Sprite = loadImage("barra01.png");
+  barra2Sprite = loadImage("barra02.png");
 }
 
 function setup() {
   createCanvas(800, 400);
   rectMode(CORNER);
-  raqueteJogador = new Raquete(30, 5, 10, 60);
-  raqueteComputador = new Raquete(width - 40, 5, 10, 60);
+  raqueteJogador = new Raquete(30, 5, 20, 120, barra1Sprite); // Usa barra1.png
+  raqueteComputador = new Raquete(width - 50, 5, 20, 120, barra2Sprite); // Usa barra2.png
   bola = new Bola(width / 2, height / 2, 10);
 }
 
@@ -51,11 +54,12 @@ function draw() {
 }
 
 class Raquete {
-  constructor(x, y, w, h) {
+  constructor(x, y, w, h, sprite) {
     this.x = x;
     this.y = y;
-    this.w = w;
-    this.h = h;
+    this.w = w / 2;
+    this.h = h / 2;
+    this.sprite = sprite; // Adiciona o sprite correspondente
   }
 
   update() {
@@ -73,8 +77,7 @@ class Raquete {
   }
 
   display() {
-    fill(255);
-    rect(this.x, this.y, this.w, this.h);
+    image(this.sprite, this.x, this.y, this.w, this.h); // Desenha o sprite da raquete
   }
 }
 
@@ -82,23 +85,21 @@ class Bola {
   constructor(x, y, r) {
     this.x = x;
     this.y = y;
-    this.r = r * 2; // Diâmetro da bola
+    this.r = r; // Diâmetro da bola
+    this.sprite = bolaSprite;
     this.velocidadeX = 5;
     this.velocidadeY = 5;
-    this.tamanhoOriginal = this.r; // Guardar o tamanho original da bola
-    this.tamanhoAtual = this.r; // Usar para modificar o tamanho durante a colisão
-    this.esmagada = false; // Flag para verificar se a bola está esmagada
   }
 
   update() {
     this.x += this.velocidadeX;
     this.y += this.velocidadeY;
 
-    if (this.y < this.r / 2 || this.y > height - this.r / 2) {
+    if (this.y < this.r || this.y > height - this.r) {
       this.velocidadeY *= -1;
     }
 
-    if (this.x - this.r / 2 < 0 || this.x + this.r / 2 > width) {
+    if (this.x - this.r < 0 || this.x + this.r > width) {
       this.reiniciar();
     }
 
@@ -110,26 +111,26 @@ class Bola {
 
   checkPaddleCollision(raquete) {
     if (
-      this.x - this.r / 2 <= raquete.x + raquete.w &&
-      this.x + this.r / 2 >= raquete.x &&
-      this.y + this.r / 2 >= raquete.y &&
-      this.y - this.r / 2 <= raquete.y + raquete.h
+      this.x - this.r  <= raquete.x + raquete.w &&
+      this.x + this.r  >= raquete.x &&
+      this.y + this.r  >= raquete.y &&
+      this.y - this.r  <= raquete.y + raquete.h
     ) {
 
-      // Calcular a posição relativa da colisão na raquete
-      let pontoColisao = this.y - (raquete.y + raquete.h / 2);
+      // // Calcular a posição relativa da colisão na raquete
+      // let pontoColisao = this.y - (raquete.y + raquete.h / 2);
       this.velocidadeX *= -1.1;
 
-      // Modificar a velocidade vertical com base na posição da colisão
-      this.velocidadeY += pontoColisao * 0.2; // Aumenta o valor multiplicador conforme necessário
+      // // Modificar a velocidade vertical com base na posição da colisão
+      // this.velocidadeY += pontoColisao * 0.2; // Aumenta o valor multiplicador conforme necessário
       this.velocidadeX = constrain(this.velocidadeX, -10, 10);
 
       // Limitar a velocidade para evitar ângulos extremos
       this.velocidadeY = constrain(this.velocidadeY, -5, 5);
 
-      // Iniciar o efeito de esmagamento
-      this.esmagada = true;
-      this.tamanhoAtual = this.r / 2; // Diminuir o tamanho quando colidir
+      // // Iniciar o efeito de esmagamento
+      // this.esmagada = true;
+      // this.tamanhoAtual = this.r / 2; // Diminuir o tamanho quando colidir
     }
   }
 
@@ -143,7 +144,9 @@ class Bola {
   }
 
   display() {
-    fill(255);
-    ellipse(this.x, this.y, this.tamanhoAtual);
+    let escala = 1.5; // Aumentar a bola para 1.5x o tamanho original
+    let largura = this.tamanhoAtual * escala; // Redimensionar largura da sprite
+    let altura = this.tamanhoAtual * escala; // Redimensionar altura da sprite
+    image(bolaSprite, this.x - largura / 2, this.y - altura / 2, largura, altura);
   }
 }
