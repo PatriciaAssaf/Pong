@@ -12,7 +12,7 @@ function setup() {
   rectMode(CORNER);
   raqueteJogador = new Raquete(30, 5, 20, 120, barra1Sprite); // Usa barra1.png
   raqueteComputador = new Raquete(width - 50, 5, 20, 120, barra2Sprite); // Usa barra2.png
-  bola = new Bola(width / 2, height / 2, 10);
+  bola = new Bola(width / 2, height / 2, 20); // Tamanho da bola aumentado
 }
 
 function draw() {
@@ -57,8 +57,8 @@ class Raquete {
   constructor(x, y, w, h, sprite) {
     this.x = x;
     this.y = y;
-    this.w = w / 2;
-    this.h = h / 2;
+    this.w = w / 2;  // Ajusta a largura
+    this.h = h / 2;  // Ajusta a altura
     this.sprite = sprite; // Adiciona o sprite correspondente
   }
 
@@ -77,7 +77,15 @@ class Raquete {
   }
 
   display() {
-    image(this.sprite, this.x, this.y, this.w, this.h); // Desenha o sprite da raquete
+    let escala = 1.5; // Escala para aumentar as raquetes
+    let largura = this.w * escala;
+    let altura = this.h * escala;
+
+    if (this === raqueteJogador) {
+      image(barra1Sprite, this.x - largura / 2, this.y, largura, altura);
+    } else {
+      image(barra2Sprite, this.x - largura / 2, this.y, largura, altura);
+    }
   }
 }
 
@@ -85,7 +93,7 @@ class Bola {
   constructor(x, y, r) {
     this.x = x;
     this.y = y;
-    this.r = r; // Diâmetro da bola
+    this.r = r / 1.5; // Raio da bola
     this.sprite = bolaSprite;
     this.velocidadeX = 5;
     this.velocidadeY = 5;
@@ -102,35 +110,18 @@ class Bola {
     if (this.x - this.r < 0 || this.x + this.r > width) {
       this.reiniciar();
     }
-
-    // Se a bola estiver esmagada, aumentar gradualmente para o tamanho original
-    if (this.esmagada && this.tamanhoAtual < this.tamanhoOriginal) {
-      this.tamanhoAtual += 0.2; // Velocidade de crescimento da bola
-    }
   }
 
   checkPaddleCollision(raquete) {
     if (
-      this.x - this.r  <= raquete.x + raquete.w &&
-      this.x + this.r  >= raquete.x &&
-      this.y + this.r  >= raquete.y &&
-      this.y - this.r  <= raquete.y + raquete.h
+      this.x - this.r <= raquete.x + raquete.w &&
+      this.x + this.r >= raquete.x &&
+      this.y + this.r >= raquete.y &&
+      this.y - this.r <= raquete.y + raquete.h
     ) {
-
-      // // Calcular a posição relativa da colisão na raquete
-      // let pontoColisao = this.y - (raquete.y + raquete.h / 2);
       this.velocidadeX *= -1.1;
-
-      // // Modificar a velocidade vertical com base na posição da colisão
-      // this.velocidadeY += pontoColisao * 0.2; // Aumenta o valor multiplicador conforme necessário
       this.velocidadeX = constrain(this.velocidadeX, -10, 10);
-
-      // Limitar a velocidade para evitar ângulos extremos
       this.velocidadeY = constrain(this.velocidadeY, -5, 5);
-
-      // // Iniciar o efeito de esmagamento
-      // this.esmagada = true;
-      // this.tamanhoAtual = this.r / 2; // Diminuir o tamanho quando colidir
     }
   }
 
@@ -139,14 +130,12 @@ class Bola {
     this.y = height / 2;
     this.velocidadeX = random([-5, 5]); // Reinicia em direção aleatória
     this.velocidadeY = random(-5, 5);
-    this.tamanhoAtual = this.r; // Restaura o tamanho original
-    this.esmagada = false; // Restaura a bola para o estado normal
   }
 
   display() {
-    let escala = 1.5; // Aumentar a bola para 1.5x o tamanho original
-    let largura = this.tamanhoAtual * escala; // Redimensionar largura da sprite
-    let altura = this.tamanhoAtual * escala; // Redimensionar altura da sprite
+    let escala = 2; // Aumentar a bola para 2x o tamanho original
+    let largura = this.r * escala;
+    let altura = this.r * escala;
     image(bolaSprite, this.x - largura / 2, this.y - altura / 2, largura, altura);
   }
 }
