@@ -5,29 +5,28 @@ let placarJogador = 0;
 let placarComputador = 0;
 
 function preload() {
-  fundo = loadImage("fundo1.png"); 
+  fundo = loadImage("fundo1.png");
   bolaSprite = loadImage("bola.png");
   barra1Sprite = loadImage("barra01.png");
   barra2Sprite = loadImage("barra02.png");
-  bounceSound = loadSound("bounce.wav"); 
+  bounceSound = loadSound("bounce.wav");
   golSound = loadSound("game_over_mono.wav");
 }
 
 function setup() {
   createCanvas(800, 400);
   rectMode(CORNER);
-  raqueteJogador = new Raquete(30, 5, 20, 120, barra1Sprite); // Usa barra1.png
-  raqueteComputador = new Raquete(width - 50, 5, 20, 120, barra2Sprite); // Usa barra2.png
-  bola = new Bola(width / 2, height / 2, 20); // Tamanho da bola aumentado
+  raqueteJogador = new Raquete(30, 5, 20, 120, barra1Sprite);
+  raqueteComputador = new Raquete(width - 50, 5, 20, 120, barra2Sprite);
+  bola = new Bola(width / 2, height / 2, 20);
 
-  // Adiciona um evento de clique para iniciar o contexto de áudio
   canvas.addEventListener('click', startAudio);
 }
 
 function startAudio() {
   if (!audioStarted) {
-    userStartAudio();  // Inicializa o contexto de áudio
-    audioStarted = true; // Marca que o áudio foi iniciado
+    userStartAudio();
+    audioStarted = true;
   }
 }
 
@@ -38,8 +37,8 @@ function narrarPlacar() {
 }
 
 function draw() {
-  let canvasRatio = width / height; // Proporção do canvas
-  let imageRatio = fundo.width / fundo.height; // Proporção da imagem
+  let canvasRatio = width / height;
+  let imageRatio = fundo.width / fundo.height;
   
   let sx, sy, sWidth, sHeight;
   
@@ -75,27 +74,27 @@ class Raquete {
   constructor(x, y, w, h, sprite) {
     this.x = x;
     this.y = y;
-    this.w = w / 2;  // Ajusta a largura
-    this.h = h / 2;  // Ajusta a altura
-    this.sprite = sprite; // Adiciona o sprite correspondente
+    this.w = w / 2;
+    this.h = h / 2;
+    this.sprite = sprite;
   }
 
   update() {
     if (this === raqueteJogador) {
       this.y = constrain(mouseY, 5, height - this.h - 5);
     } else {
-      let velocidadeComputador = 5; // Ajuste da velocidade da raquete do computador
+      let velocidadeComputador = 5;
       if (bola.y < this.y + this.h / 2) {
-        this.y -= velocidadeComputador;  // Se a bola está acima, a raquete sobe
+        this.y -= velocidadeComputador;
       } else if (bola.y > this.y + this.h / 2) {
-        this.y += velocidadeComputador;  // Se a bola está abaixo, a raquete desce
+        this.y += velocidadeComputador;
       }
       this.y = constrain(this.y, 5, height - this.h - 5);
     }
   }
 
   display() {
-    let escala = 1.5; // Escala para aumentar as raquetes
+    let escala = 1.5;
     let largura = this.w * escala;
     let altura = this.h * escala;
 
@@ -111,18 +110,17 @@ class Bola {
   constructor(x, y, r) {
     this.x = x;
     this.y = y;
-    this.r = r / 1.5; // Raio da bola
+    this.r = r / 1.5;
     this.sprite = bolaSprite;
     this.velocidadeX = 5;
     this.velocidadeY = 5;
-    this.angulo = 0; // Ângulo de rotação acumulado
+    this.angulo = 0;
   }
 
   update() {
     this.x += this.velocidadeX;
     this.y += this.velocidadeY;
-
-    this.angulo += this.velocidadeX / 10; // Ajuste para controlar a velocidade da rotação
+    this.angulo += this.velocidadeX / 10;
 
     if (this.y < this.r || this.y > height - this.r) {
       this.velocidadeY *= -1;
@@ -143,18 +141,18 @@ class Bola {
       this.velocidadeX *= -1.1;
       this.velocidadeX = constrain(this.velocidadeX, -10, 10);
       this.velocidadeY = constrain(this.velocidadeY, -5, 5);
-      bounceSound.play();  // Toca o som de colisão
+      bounceSound.play();
     }
     
     if (this.x + this.r / 2 >= width) {
-      golSound.play();  // Toca o som de gol
-      placarComputador++;  // Computador faz gol
-      narrarPlacar();  // Narra o placar
+      placarComputador++;
+      golSound.play();
+      narrarPlacar();
       this.reiniciar();
     } else if (this.x - this.r / 2 <= 0) {
-      golSound.play();  // Toca o som de gol
-      placarJogador++;  // Jogadora faz gol
-      narrarPlacar();  // Narra o placar
+      placarJogador++;
+      golSound.play();
+      narrarPlacar();
       this.reiniciar();
     }
   }
@@ -162,22 +160,23 @@ class Bola {
   reiniciar() {
     this.x = width / 2;
     this.y = height / 2;
-    this.velocidadeX = random([-5, 5]); // Reinicia em direção aleatória
+    this.velocidadeX = random([-5, 5]);
     this.velocidadeY = random(-5, 5);
-    this.angulo = 0; // Resetar o ângulo de rotação
+    this.angulo = 0;
   }
 
   display() {
-    let escala = 2; // Aumentar a bola para 2x o tamanho original
+    let escala = 2;
     let largura = this.r * escala;
     let altura = this.r * escala;
-    push(); // Salvar o estado atual do canvas
-    translate(this.x, this.y); // Mover a origem para o centro da bola
-    rotate(this.angulo); // Rotacionar com base no ângulo acumulado
-    image(this.sprite, -largura / 2, -altura / 2, largura, altura); // Desenhar a bola rotacionada
-    pop(); // Restaurar o estado do canvas
+    push();
+    translate(this.x, this.y);
+    rotate(this.angulo);
+    image(this.sprite, -largura / 2, -altura / 2, largura, altura);
+    pop();
   }
 }
+
 
 
 
