@@ -1,10 +1,16 @@
 let raqueteJogador, raqueteComputador, bola, fundo, bolaSprite, barra1Sprite, barra2Sprite;
+let bounceSound, golSound;
+let audioStarted = false;
+let placarJogador = 0;
+let placarComputador = 0;
 
 function preload() {
   fundo = loadImage("fundo1.png"); 
   bolaSprite = loadImage("bola.png");
   barra1Sprite = loadImage("barra01.png");
   barra2Sprite = loadImage("barra02.png");
+  bounceSound = loadSound("bounce.wav"); 
+  golSound = loadSound("game_over_mono.wav");
 }
 
 function setup() {
@@ -13,32 +19,44 @@ function setup() {
   raqueteJogador = new Raquete(30, 5, 20, 120, barra1Sprite); // Usa barra1.png
   raqueteComputador = new Raquete(width - 50, 5, 20, 120, barra2Sprite); // Usa barra2.png
   bola = new Bola(width / 2, height / 2, 20); // Tamanho da bola aumentado
+
+  // Adiciona um evento de clique para iniciar o contexto de áudio
+  canvas.addEventListener('click', startAudio);
+}
+
+function startAudio() {
+  if (!audioStarted) {
+    userStartAudio();  // Inicializa o contexto de áudio
+    audioStarted = true; // Marca que o áudio foi iniciado
+  }
+}
+
+function narrarPlacar() {
+  let placarTexto = `${placarComputador} a ${placarJogador}`;
+  let utterance = new SpeechSynthesisUtterance(placarTexto);
+  speechSynthesis.speak(utterance);
 }
 
 function draw() {
-    let canvasRatio = width / height; // Proporção do canvas
-    let imageRatio = fundo.width / fundo.height; // Proporção da imagem
+  let canvasRatio = width / height; // Proporção do canvas
+  let imageRatio = fundo.width / fundo.height; // Proporção da imagem
   
-    let sx, sy, sWidth, sHeight;
+  let sx, sy, sWidth, sHeight;
   
-    if (canvasRatio > imageRatio) {
-      // Canvas é mais largo que a imagem, recortar verticalmente
-      sWidth = fundo.width;
-      sHeight = fundo.width / canvasRatio;
-      sx = 0;
-      sy = (fundo.height - sHeight) / 2;
-    } else {
-      // Canvas é mais alto que a imagem, recortar horizontalmente
-      sWidth = fundo.height * canvasRatio;
-      sHeight = fundo.height;
-      sx = (fundo.width - sWidth) / 2;
-      sy = 0;
-    }
-  
-    // Desenhar a imagem recortada
-    image(fundo, 0, 0, width, height, sx, sy, sWidth, sHeight);
+  if (canvasRatio > imageRatio) {
+    sWidth = fundo.width;
+    sHeight = fundo.width / canvasRatio;
+    sx = 0;
+    sy = (fundo.height - sHeight) / 2;
+  } else {
+    sWidth = fundo.height * canvasRatio;
+    sHeight = fundo.height;
+    sx = (fundo.width - sWidth) / 2;
+    sy = 0;
+  }
 
-  // Bordas superiores e inferiores
+  image(fundo, 0, 0, width, height, sx, sy, sWidth, sHeight);
+
   fill("#2b3fd6");
   rect(0, 0, width, 5);
   rect(0, height - 5, width, 5);
@@ -97,11 +115,14 @@ class Bola {
     this.sprite = bolaSprite;
     this.velocidadeX = 5;
     this.velocidadeY = 5;
+    this.angulo = 0; // Ângulo de rotação acumulado
   }
 
   update() {
     this.x += this.velocidadeX;
     this.y += this.velocidadeY;
+
+    this.angulo += this.velocidadeX / 10; // Ajuste para controlar a velocidade da rotação
 
     if (this.y < this.r || this.y > height - this.r) {
       this.velocidadeY *= -1;
@@ -122,6 +143,19 @@ class Bola {
       this.velocidadeX *= -1.1;
       this.velocidadeX = constrain(this.velocidadeX, -10, 10);
       this.velocidadeY = constrain(this.velocidadeY, -5, 5);
+      bounceSound.play();  // Toca o som de colisão
+    }
+    
+    if (this.x + this.r / 2 >= width) {
+      golSound.play();  // Toca o som de gol
+      placarComputador++;  // Computador faz gol
+      narrarPlacar();  // Narra o placar
+      this.reiniciar();
+    } else if (this.x - this.r / 2 <= 0) {
+      golSound.play();  // Toca o som de gol
+      placarJogador++;  // Jogadora faz gol
+      narrarPlacar();  // Narra o placar
+      this.reiniciar();
     }
   }
 
@@ -130,12 +164,24 @@ class Bola {
     this.y = height / 2;
     this.velocidadeX = random([-5, 5]); // Reinicia em direção aleatória
     this.velocidadeY = random(-5, 5);
+    this.angulo = 0; // Resetar o ângulo de rotação
   }
 
   display() {
     let escala = 2; // Aumentar a bola para 2x o tamanho original
     let largura = this.r * escala;
     let altura = this.r * escala;
-    image(bolaSprite, this.x - largura / 2, this.y - altura / 2, largura, altura);
+    push(); // Salvar o estado atual do canvas
+    translate(this.x, this.y); // Mover a origem para o centro da bola
+    rotate(this.angulo); // Rotacionar com base no ângulo acumulado
+    image(this.sprite, -largura / 2, -altura / 2, largura, altura); // Desenhar a bola rotacionada
+    pop(); // Restaurar o estado do canvas
   }
 }
+
+
+
+
+
+
+
